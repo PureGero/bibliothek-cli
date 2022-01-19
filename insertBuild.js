@@ -9,7 +9,6 @@ const argv = yargs
   .option("projectFriendlyName", optionOf("string"))
   .option("versionGroupName", optionOf("string"))
   .option("versionName", optionOf("string"))
-  .option("buildNumber", optionOf("number"))
   .option("repositoryPath", optionOf("string"))
   .option("storagePath", optionOf("string"))
   .option("download", optionOf("string"))
@@ -23,7 +22,6 @@ const projectName = argv.projectName;
 const projectFriendlyName = argv.projectFriendlyName;
 const versionGroupName = argv.versionGroupName;
 const versionName = argv.versionName;
-const buildNumber = argv.buildNumber;
 const repositoryPath = argv.repositoryPath;
 const storagePath = argv.storagePath;
 // type:path:hash:name
@@ -56,36 +54,6 @@ for(let download of downloads) {
 }
 
 // ----------------------------------------------------------------------------------------------------
-
-const downloadsPath = path.join(
-  storagePath,
-  projectName,
-  versionName,
-  buildNumber.toString()
-);
-
-if(!fs.existsSync(downloadsPath)) {
-  fs.mkdirSync(downloadsPath, {
-    recursive: true
-  });
-}
-
-for(let download of downloads) {
-  const info = download.split(":");
-  if(info.length === 3) {
-    const downloadPath = path.join(
-      downloadsPath,
-      projectName + "-" + versionName + "-" + buildNumber + ".jar"
-    );
-    fs.copyFileSync(info[1], downloadPath);
-  } else if(info.length === 4) {
-    const downloadPath = path.join(
-      downloadsPath,
-      info[3]
-    );
-    fs.copyFileSync(info[1], downloadPath);
-  }
-}
 
 const client = new MongoClient("mongodb://localhost:27017", {
   useUnifiedTopology: true
@@ -162,6 +130,39 @@ async function run() {
         "message": commit.rawBody
       });
     });
+
+    const buildNumber = (oldBuild && oldBuild.number + 1) || 1;
+
+    const downloadsPath = path.join(
+      storagePath,
+      projectName,
+      versionName,
+      buildNumber.toString()
+    );
+    
+    if(!fs.existsSync(downloadsPath)) {
+      fs.mkdirSync(downloadsPath, {
+        recursive: true
+      });
+    }
+    
+    for(let download of downloads) {
+      const info = download.split(":");
+      if(info.length === 3) {
+        const downloadPath = path.join(
+          downloadsPath,
+          projectName + "-" + versionName + "-" + buildNumber + ".jar"
+        );
+        fs.copyFileSync(info[1], downloadPath);
+      } else if(info.length === 4) {
+        const downloadPath = path.join(
+          downloadsPath,
+          info[3]
+        );
+        fs.copyFileSync(info[1], downloadPath);
+      }
+    }
+
     const buildDownloads = {};
     for(let download of downloads) {
       const info = download.split(":");
