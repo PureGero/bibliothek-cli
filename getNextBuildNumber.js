@@ -1,7 +1,4 @@
-const fs = require("fs");
-const gitlog = require("gitlog").default;
 const {MongoClient} = require("mongodb");
-const path = require("path");
 const yargs = require("yargs");
 
 const argv = yargs
@@ -9,7 +6,6 @@ const argv = yargs
   .option("projectFriendlyName", optionOf("string"))
   .option("versionGroupName", optionOf("string"))
   .option("versionName", optionOf("string"))
-  .option("download", optionOf("string"))
   .option("buildChannel", optionOf("string", false))
   .default("buildChannel", "default")
   .help()
@@ -21,32 +17,12 @@ const projectFriendlyName = argv.projectFriendlyName;
 const versionGroupName = argv.versionGroupName;
 const versionName = argv.versionName;
 // type:path:hash:name
-let downloads = argv.download;
 const buildChannel = argv.buildChannel.toUpperCase();
 
 // Validate buildChannel
 if (buildChannel !== "DEFAULT" && buildChannel !== "EXPERIMENTAL") {
   console.log(`Invalid buildChannel: ${buildChannel}`);
   return;
-}
-
-if(typeof downloads === "string") {
-  const tempDownloads = downloads;
-  downloads = [tempDownloads];
-}
-
-// Validate downloads
-let foundPrimary = false;
-for(let download of downloads) {
-  const info = download.split(":");
-  if(info.length === 3) {
-    if(foundPrimary === true) {
-      console.log("Too many primary files.");
-      return;
-    } else {
-      foundPrimary = true;
-    }
-  }
 }
 
 // ----------------------------------------------------------------------------------------------------
