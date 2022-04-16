@@ -121,7 +121,7 @@ async function run() {
     const commits = gitlog({
       repo: repositoryPath,
       fields: ["hash", "subject", "rawBody"],
-      branch: lastBuild + "...HEAD"
+      branch: lastBuild + "..HEAD"
     });
     commits.forEach(function (commit) {
       changes.push({
